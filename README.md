@@ -12,6 +12,18 @@ LLM 以原理与小实验为主；工程先给「实现工具调用」等大类�
 
 ## 安装
 
+在 DSH 的「添加插件」输入框填写 npm 包名：
+
+```text
+dsh-daily-learning
+```
+
+或通过 CLI 安装指定版本：
+
+```powershell
+dsh plugin --profile desktop add "dsh-daily-learning@0.1.0" --registry=https://registry.npmjs.org/
+```
+
 适配目标：DeepSeek Harness **0.2.0-rc.2**，Node **24**。其他版本的结果见 [兼容记录](docs/compatibility.md)。
 
 下载预构建 `dsh-daily-learning-0.1.0.tgz` 后，在 DSH CLI 中安装到你的 profile：
@@ -30,7 +42,13 @@ dsh plugin --profile desktop add "github:allforkarina/dsh-daily-sticker#main"
 
 仓库已经包含 `lib/`。预构建安装包保存在 [release/dsh-daily-learning-0.1.0.tgz](release/dsh-daily-learning-0.1.0.tgz)，可直接下载后按上面的本地包命令安装。
 
-源代码上传 GitHub 时保留 `lib/`、`package.json` 和 `cordis.patch.yml`；它们是可直接加载的插件产物。不要上传 `node_modules/`、`.target-cache/`、`.test-runtime/` 或自己的学习目录。无需发布到 npm。
+源代码上传 GitHub 时保留 `lib/`、`package.json` 和 `cordis.patch.yml`；它们是可直接加载的插件产物。不要上传 `node_modules/`、`.target-cache/`、`.test-runtime/` 或自己的学习目录。
+
+如果 DSH 界面无法通过 HTTPS 访问 GitHub，已经配置 GitHub SSH 身份的机器可填入以下地址。它已通过目标预览版的原生 GitHub 连接预检：
+
+```text
+git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git#main
+```
 
 ## 使用
 

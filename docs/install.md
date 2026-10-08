@@ -2,6 +2,16 @@
 
 目标版本：DSH 0.2.0-rc.2。发行包已经包含 ESM Host、lazy-CJS Client、声明文件和 bundle patch，无需安装后编译。
 
+## npm 安装
+
+在「添加插件」输入框填写 `dsh-daily-learning`，安装源选择 npm 官方源。
+
+```powershell
+dsh plugin --profile desktop add "dsh-daily-learning@0.1.0" --registry=https://registry.npmjs.org/
+```
+
+`dsh-daily-sticker` 是 GitHub 仓库名，npm 包名和卸载时使用的名称均为 `dsh-daily-learning`。
+
 ## 预构建包
 
 ```powershell
@@ -43,6 +53,8 @@ dsh plugin --profile desktop add "github:allforkarina/dsh-daily-sticker#main"
 ```
 
 其他机器请使用自己的 DSH 安装目录。仓库的 `release/` 同时提供预构建 tgz；这条本地包安装路径已完成独立实装验证，GitHub 安装的网络访问仍取决于本机 Git/npm 环境。
+
+DSH 界面的 HTTPS GitHub 连接预检若失败，已有 GitHub SSH 身份的机器可在同一输入框填写 `git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git#main`，无需改动宿主源码或全局 Git 配置。
 
 本地开发先运行 `node scripts/build.mjs`，然后可用官方安装通道安装项目绝对路径。
 

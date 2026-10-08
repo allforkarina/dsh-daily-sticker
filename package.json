@@ -4,6 +4,7 @@
   "description": "DeepSeek Harness 每日四类学习任务备忘录",
   "type": "module",
   "license": "MIT",
+  "publishConfig": { "registry": "https://registry.npmjs.org/", "access": "public" },
   "repository": { "type": "git", "url": "git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git" },
   "homepage": "https://github.com/allforkarina/dsh-daily-sticker#readme",
   "main": "./lib/host.js",
