@@ -1,0 +1,13 @@
+- id: otel
+  disabled: true
+- id: session-telemetry-otel
+  disabled: true
+- id: product-analytics
+  disabled: true
+- id: web
+  config:
+    searchProvider: daily-test
+    fetchProvider: daily-test
+- insert:
+    - id: daily-learning-dev-entry
+      name: D:/Files/Projects/DSH_Plugin/DailyPlan_Sticker/scripts/dev-entry.mjs

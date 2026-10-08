@@ -1,0 +1,7 @@
+- insert:
+    - id: dsh-daily-learning
+      name: dsh-daily-learning
+      config:
+        dataRoot: null
+        model: null
+        autoPrepareOnOpen: true
