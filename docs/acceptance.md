@@ -14,7 +14,7 @@
 
 GitHub `v0.2.0` 标签已推送。全新 `daily-learning-github-release` profile 的原生 GUI 通过 `git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git#v0.2.0` 实际安装，依赖和 bundle 写入该 profile，点击「立即启用」后认证 state RPC 返回 200，安装包 version 为 0.2.0，Host defaults 包含四类学习需求。验收脚本现同时检查安装完成、启用、版本及 Host 状态，避免把单独的侧栏入口当作安装成功。截图：`screenshots/github-install-020.png`。
 
-npm 登录和发布 dry-run 通过，但两次设备认证均未完成，CLI 的认证回调返回 404。最终官方源查询仍未找到 0.2.0，因此 npm 发布未完成；用户准备好及时完成设备认证后再重新发起发布，并继续核对远端 shasum 和官方源实装。GitHub v0.2.0 已可安装。验收结束已停止本任务的隔离测试服务，保留测试证据；未修改用户生产 DSH。
+npm 官方源发布完成：`dsh-daily-learning@0.2.0`，账号 zkarina，latest 标签。2026-10-10 用户准备好设备认证后重新发起发布，CLI 返回成功；等待 registry 处理后，官方源 version、shasum `81ae0304871d9a0b956787f2a94974c39868ac8e` 及 dsh bundle/client 元数据均与发行包一致。全新 `daily-learning-npm020` 隔离 profile 的原生插件 GUI 从官方源安装 `dsh-daily-learning@0.2.0`，依赖和 bundle 写入、立即启用、安装包版本 0.2.0 和认证 Host state 返回 200 均通过。截图：`screenshots/npm-install-020.png`。验收结束已停止本任务的隔离测试服务，保留测试证据；未修改用户生产 DSH。
 
 ## 0.1.0 基础功能历史验收
 

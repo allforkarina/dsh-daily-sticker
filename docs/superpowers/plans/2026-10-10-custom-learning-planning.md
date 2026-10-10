@@ -394,8 +394,8 @@ git diff --check
 
 **Files:** Update `docs/acceptance.md`, `docs/publish.md`, `docs/install.md`；使用现有 GitHub remote 和 npm 官方源。
 
-- [ ] 发布前核对 git diff、包文件列表和授权范围。向既有 GitHub main 正常推送，禁止 force push。用户已授权发布，不额外创建 PR 或账号。
-- [ ] 用 npm 官方源检查当前身份和目标版本。若 0.2.0 已被占用，不尝试覆写，先核对是谁发布及包内容。发布前执行绝对路径 dry-run：
+- [x] 发布前核对 git diff、包文件列表和授权范围。向既有 GitHub main 正常推送，禁止 force push。用户已授权发布，不额外创建 PR 或账号。
+- [x] 用 npm 官方源检查当前身份和目标版本。若 0.2.0 已被占用，不尝试覆写，先核对是谁发布及包内容。发布前执行绝对路径 dry-run：
 
 ```powershell
 $releaseTar = (Resolve-Path -LiteralPath '.\dist\dsh-daily-learning-0.2.0.tgz').Path
@@ -405,7 +405,7 @@ npm publish $releaseTar --access public --registry=https://registry.npmjs.org/
 
 不能用 `dist/file.tgz` 裸相对路径，之前 npm 曾将其当成 GitHub shorthand。需要设备 2FA 时通过标准 npm 浏览器流程完成，不读取或要求用户发送密码、验证码、token、恢复码。
 
-- [ ] 验证公开元数据与本地 pack 的 shasum、version、dsh.bundle.patch 一致：
+- [x] 验证公开元数据与本地 pack 的 shasum、version、dsh.bundle.patch 一致：
 
 ```powershell
 npm view dsh-daily-learning@0.2.0 version dist.shasum dsh --json --prefer-online --registry=https://registry.npmjs.org/
@@ -413,9 +413,9 @@ npm view dsh-daily-learning@0.2.0 version dist.shasum dsh --json --prefer-online
 
 短暂处理状态允许有限重试；publish 成功输出不等于远端已可安装，必须查到目标版本。
 
-- [ ] 实际隔离 GUI 输入 `dsh-daily-learning@0.2.0`、npm 官方源，检查入口和新增设置。核对当前 DSH plugin manager 的更新能力；支持更新时给用户准确操作，不支持时提供正式卸载再安装步骤并保留原 dataRoot，不能猜测不存在的更新按钮。
-- [ ] 在独立已有 0.1.0 数据的 profile 演示更新后重启、路线配置可用、旧任务和角色保留。GitHub 安装验证已推送新构建；网络问题不能被描述为源码不兼容。
-- [ ] 记录 npm 公共版本及用户操作说明：更新到 0.2.0 → 重启 DSH → 原数据目录 → 设置宿主模型 → 保存自由文本需求 → 生成路线 → 重新规划今日未完成项。提交验收记录并正常推送。
+- [x] 实际隔离 GUI 输入 `dsh-daily-learning@0.2.0`、npm 官方源，检查入口和新增设置。核对当前 DSH plugin manager 的更新能力；支持更新时给用户准确操作，不支持时提供正式卸载再安装步骤并保留原 dataRoot，不能猜测不存在的更新按钮。
+- [x] 在独立已有 0.1.0 数据的 profile 演示更新后重启、路线配置可用、旧任务和角色保留。GitHub 安装验证已推送新构建；网络问题不能被描述为源码不兼容。
+- [x] 记录 npm 公共版本及用户操作说明：更新到 0.2.0 → 重启 DSH → 原数据目录 → 设置宿主模型 → 保存自由文本需求 → 生成路线 → 重新规划今日未完成项。提交验收记录并正常推送。
 
 ## 检查点与验收覆盖
 
@@ -429,4 +429,4 @@ npm view dsh-daily-learning@0.2.0 version dist.shasum dsh --json --prefer-online
 
 设计中的需求输入、完整路线、重生成、每日时长、完成推进、历史保留、模型失败、旧版迁移、资料真实性、Prompt 上下文以及 npm/GitHub 发布均有上述对应任务。不得仅完成 UI 文本框就宣布功能完成，也不得以夹具验证替代用户实际模型效果反馈。
 
-本计划写于实施前。2026-10-10 执行结果：Task 1–9 已完成，62 项自动测试、实际 DSH 完整面板流程、0.1.0 升级、重启恢复和发行包审计通过。Task 10 的 GitHub main 及 v0.2.0 标签已发布，完整 GUI 安装/启用及 Host 状态核对通过；npm 登录和 dry-run 完成，实际发布仍等待 npm 官方设备认证，官方源公开版本及实装验证尚待完成。
+本计划写于实施前。2026-10-10 执行结果：Task 1–10 已完成。62 项自动测试、实际 DSH 完整面板流程、0.1.0 升级、重启恢复和发行包审计通过。GitHub main 及 v0.2.0 标签已发布，完整 GUI 安装/启用及 Host 状态核对通过；npm 官方源已公开 dsh-daily-learning@0.2.0，远端 shasum 与发行包一致，实际官方源 GUI 安装、启用和 Host 加载通过。测试服务已停止，用户生产 DSH 未修改。真实模型规划质量等待用户安装后反馈。

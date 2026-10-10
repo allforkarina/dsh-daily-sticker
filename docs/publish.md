@@ -2,6 +2,8 @@
 
 插件 npm 包名：`dsh-daily-learning`。GitHub 仓库：`allforkarina/dsh-daily-sticker`。两者不是同一个名称。
 
+0.2.0 已于 2026-10-10 发布到 npm 官方源，公开 shasum 为 `81ae0304871d9a0b956787f2a94974c39868ac8e`。GitHub v0.2.0 标签、官方源安装与启用均已验证，详见 acceptance.md。
+
 ## npm 发布
 
 包内已配置官方 registry 与 public access，发行包只含预构建产物和必要文档。
