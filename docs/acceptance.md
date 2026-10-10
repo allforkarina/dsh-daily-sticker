@@ -14,7 +14,7 @@
 
 GitHub `v0.2.0` 标签已推送。全新 `daily-learning-github-release` profile 的原生 GUI 通过 `git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git#v0.2.0` 实际安装，依赖和 bundle 写入该 profile，点击「立即启用」后认证 state RPC 返回 200，安装包 version 为 0.2.0，Host defaults 包含四类学习需求。验收脚本现同时检查安装完成、启用、版本及 Host 状态，避免把单独的侧栏入口当作安装成功。截图：`screenshots/github-install-020.png`。
 
-npm 已登录为 zkarina，发布 dry-run 通过；第一次发布设备认证超时，当前重新打开设备认证流程，尚未将 0.2.0 宣称为 npm 已公开版本。完成认证后继续查询远端 shasum 并从官方源实装验证。
+npm 登录和发布 dry-run 通过，但两次设备认证均未完成，CLI 的认证回调返回 404。最终官方源查询仍未找到 0.2.0，因此 npm 发布未完成；用户准备好及时完成设备认证后再重新发起发布，并继续核对远端 shasum 和官方源实装。GitHub v0.2.0 已可安装。验收结束已停止本任务的隔离测试服务，保留测试证据；未修改用户生产 DSH。
 
 ## 0.1.0 基础功能历史验收
 
