@@ -36,6 +36,8 @@ dsh plugin --profile desktop add "D:\Downloads\dsh-daily-learning-0.2.0.tgz"
 
 Web 用户将 `desktop` 换为 `web` 或自己的 profile 名称。安装后重启宿主；Web 页面再硬刷新。完整步骤见 [安装说明](docs/install.md)。
 
+通过插件页安装后，请点击「立即启用」或开启插件开关，再重启 DSH。
+
 也可直接从 GitHub 安装：
 
 ```powershell

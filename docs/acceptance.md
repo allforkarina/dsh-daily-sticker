@@ -12,6 +12,10 @@
 
 最终包包含 19 个必要文件，审计无测试数据、开发目录或凭据。`dist/` 与 `release/` 的 tgz SHA-256 均为 `f2f442e78b32d4cf473ba407d0fce14edf912c6475b480dcf27898e46ceff532`，npm dry-run shasum 为 `81ae0304871d9a0b956787f2a94974c39868ac8e`。安装经过正式插件通道，不手工改宿主。最终代码重启后，需求、两个路线版本、完整今日计划和 revision 全部恢复；自动准备开启时打开已有今日任务仍为零模型调用，页面无错误，暗色链接为 rgb(249,250,251)。脚本：`scripts/verify-route-restart.mjs`、`scripts/verify-restart.mjs`。
 
+GitHub `v0.2.0` 标签已推送。全新 `daily-learning-github-release` profile 的原生 GUI 通过 `git+ssh://git@github.com/allforkarina/dsh-daily-sticker.git#v0.2.0` 实际安装，依赖和 bundle 写入该 profile，点击「立即启用」后认证 state RPC 返回 200，安装包 version 为 0.2.0，Host defaults 包含四类学习需求。验收脚本现同时检查安装完成、启用、版本及 Host 状态，避免把单独的侧栏入口当作安装成功。截图：`screenshots/github-install-020.png`。
+
+npm 已登录为 zkarina，发布 dry-run 通过；第一次发布设备认证超时，当前重新打开设备认证流程，尚未将 0.2.0 宣称为 npm 已公开版本。完成认证后继续查询远端 shasum 并从官方源实装验证。
+
 ## 0.1.0 基础功能历史验收
 
 日期：2026-10-09。依据：daily-planner-spec-v0.4.md。

@@ -12,6 +12,8 @@ dsh plugin --profile desktop add "dsh-daily-learning@0.2.0" --registry=https://r
 
 `dsh-daily-sticker` 是 GitHub 仓库名，npm 包名和卸载时使用的名称均为 `dsh-daily-learning`。
 
+GUI 安装完成后点击「立即启用」或开启该插件开关，再重启 DSH。仅出现侧栏入口不代表 Host 已启用；未启用时每日面板无法取得规划状态。
+
 ## 从 0.1.0 更新
 
 在 DSH 插件页移除旧插件，再添加 `dsh-daily-learning@0.2.0`，选择 npm 官方源。完全重启 DSH 后打开「每日学习」，如需重新配置目录，选择原 dataRoot 即可恢复；卸载插件不会删除该目录。
