@@ -7,7 +7,7 @@ const errors = [], prepare = [];
 page.on('pageerror', e => errors.push(e.message));
 page.on('request', req => { if (req.url().includes('/daily-learning/prepare')) prepare.push(req.url()); });
 try {
-  await page.goto('http://127.0.0.1:31299/daily-test-entry');
+  await page.goto(`http://127.0.0.1:${process.env.DSH_TEST_PORT || '31299'}/daily-test-entry`);
   await page.getByRole('button', { name: '每日学习', exact: true }).waitFor();
   for (const label of ['继续', '稍后配置']) {
     const button = page.getByRole('button', { name: label, exact: true });

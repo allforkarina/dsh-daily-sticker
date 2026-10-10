@@ -7,6 +7,8 @@ import { collectSources } from './sources.ts';
 import { defaults, exactKeys, text } from './domain.ts';
 import { rpcRoute } from './routes.ts';
 import { abortable } from './abort.ts';
+import { generateRoute } from './route-planner.ts';
+import { MAX_REQUEST_BYTES } from './learning.ts';
 
 export const name = 'dsh-daily-learning';
 export const inject = ['connection', 'webServer', 'llm', 'web', 'configEditor'];
@@ -20,25 +22,27 @@ export function apply(ctx: any, config: any) {
   let store: LocalStore | null = null;
   let service: DailyService | null = null;
   let error: string | null = null;
+  const generateWithHost = async (system: string, input: string, signal: AbortSignal, maxChars = 48000) => {
+    const route = await ctx.llm.resolveCallConfig(config.model, signal);
+    const messages = [createSystemMessage(system), createUserMessage({ content: [{ type: 'text', text: input }], source: { kind: 'operator' } })];
+    return streamText(ctx.llm.stream({ ...route, messages, signal }), maxChars);
+  };
   const activation = (async () => {
     if (!config.dataRoot) return;
     try {
       store = await LocalStore.open(config.dataRoot);
       lifetime.signal.throwIfAborted();
-      service = new DailyService(store, async (date, prefs, history) => planDay(date, prefs, history, {
+      service = new DailyService(store, async (date, prefs, history, routes) => planDay(date, prefs, history, {
         signal: lifetime.signal,
-        sources: () => collectSources(store!.root, ctx.web, prefs, date, history, lifetime.signal),
-        ...(config.model ? { generate: async (system: string, input: string, signal: AbortSignal) => {
-          const route = await ctx.llm.resolveCallConfig(config.model, signal);
-          const messages = [createSystemMessage(system), createUserMessage({ content: [{ type: 'text', text: input }], source: { kind: 'operator' } })];
-          return streamText(ctx.llm.stream({ ...route, messages, signal }));
-        } } : {})
-      }));
+        routes,
+        sources: () => collectSources(store!.root, ctx.web, prefs, date, history, lifetime.signal, routes),
+        ...(config.model ? { generate: generateWithHost } : {})
+      }), () => new Date(), config.model ? input => generateRoute(input, { signal: lifetime.signal, generate: (system, text, signal) => generateWithHost(system, text, signal, 128000) }) : undefined);
     } catch (cause: any) { error = cause.code ? `数据目录暂不可用（${cause.code}），请检查路径或权限。` : cause.message; }
   })();
   async function snapshot() {
     await activation;
-    const value = service ? await service.snapshot() : { state: null, today: null, preparing: false, warning: null };
+    const value = service ? await service.snapshot() : { state: null, today: null, preparing: false, routeGenerating: null, warning: null };
     return { ...value, config: { dataRoot: config.dataRoot, model: config.model, autoPrepareOnOpen: config.autoPrepareOnOpen }, error, defaults: defaults() };
   }
   async function catalog() {
@@ -55,7 +59,7 @@ export function apply(ctx: any, config: any) {
     state: async (payload: any) => { exactKeys(payload, []); return snapshot(); },
     catalog: async (payload: any) => { exactKeys(payload, []); return catalog(); },
     prepare: async (payload: any) => {
-      exactKeys(payload, ['force']);
+      exactKeys(payload, ['force', 'expectedDataRoot']);
       if (typeof payload.force !== 'boolean') throw new Error('准备参数不正确');
       await activation;
       if (!service) throw new Error(error || '请先配置数据目录');
@@ -63,17 +67,24 @@ export function apply(ctx: any, config: any) {
       return snapshot();
     },
     check: async (payload: any) => {
-      exactKeys(payload, ['date', 'category', 'done', 'revision']);
+      exactKeys(payload, ['date', 'category', 'done', 'revision', 'expectedDataRoot']);
       await activation;
       if (!service) throw new Error('请先配置数据目录');
       await service.check(payload.date, payload.category, payload.done, payload.revision);
       return snapshot();
     },
     preferences: async (payload: any) => {
-      exactKeys(payload, ['preferences', 'revision']);
+      exactKeys(payload, ['preferences', 'revision', 'expectedDataRoot']);
       await activation;
       if (!service) throw new Error('请先配置数据目录');
       await service.preferences(payload.preferences, payload.revision);
+      return snapshot();
+    },
+    routeGenerate: async (payload: any) => {
+      exactKeys(payload, ['category', 'revision', 'expectedDataRoot']);
+      await activation;
+      if (!service) throw new Error(error || '请先配置数据目录');
+      await service.generateRoute(payload.category, payload.revision);
       return snapshot();
     },
     configure: async (payload: any) => {
@@ -97,17 +108,18 @@ export function apply(ctx: any, config: any) {
     try {
       lifetime.signal.throwIfAborted();
       if (!Object.hasOwn(methods, method)) throw new Error('未知操作');
-      if (Buffer.byteLength(JSON.stringify(payload ?? null), 'utf8') > 65536) throw new Error('请求内容过大');
+      if (Buffer.byteLength(JSON.stringify(payload ?? null), 'utf8') > MAX_REQUEST_BYTES) throw new Error('请求内容过大');
       return { ok: true, value: await methods[method](payload) };
     } catch (cause: any) {
       return { ok: false, error: { code: 'daily-learning/error', message: cause.code && !String(cause.code).startsWith('daily') ? `操作失败（${cause.code}），请检查设置后重试。` : String(cause.message || '操作失败').slice(0, 600), details: {} } };
     }
   };
-  ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/daily-learning', handler: rpcRoute(ctx.connection, dispatch) }), 'daily-learning: authenticated named route');
+  ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/daily-learning', handler: rpcRoute(ctx.connection, dispatch, () => config.dataRoot) }), 'daily-learning: authenticated named route');
   ctx.effect(() => async () => {
     lifetime.abort();
     await activation;
     await service?.pending?.catch(() => {});
+    await service?.routePending?.catch(() => {});
     await store?.close();
   }, 'daily-learning: cancel and release data root');
 }

@@ -7,15 +7,21 @@
 在「添加插件」输入框填写 `dsh-daily-learning`，安装源选择 npm 官方源。
 
 ```powershell
-dsh plugin --profile desktop add "dsh-daily-learning@0.1.0" --registry=https://registry.npmjs.org/
+dsh plugin --profile desktop add "dsh-daily-learning@0.2.0" --registry=https://registry.npmjs.org/
 ```
 
 `dsh-daily-sticker` 是 GitHub 仓库名，npm 包名和卸载时使用的名称均为 `dsh-daily-learning`。
 
+## 从 0.1.0 更新
+
+在 DSH 插件页移除旧插件，再添加 `dsh-daily-learning@0.2.0`，选择 npm 官方源。完全重启 DSH 后打开「每日学习」，如需重新配置目录，选择原 dataRoot 即可恢复；卸载插件不会删除该目录。
+
+首次打开原目录会先备份旧状态，再升级为 schema 2，保留历史任务、角色及勾选。升级和回退限制见 [恢复说明](recovery.md)。选择宿主模型，在「学习需求与路线」粘贴自由文本，保存后点击该类「生成路线」。已有今日任务需要点击「重新规划未完成项」才应用新路线。
+
 ## 预构建包
 
 ```powershell
-dsh plugin --profile desktop add "D:\Downloads\dsh-daily-learning-0.1.0.tgz"
+dsh plugin --profile desktop add "D:\Downloads\dsh-daily-learning-0.2.0.tgz"
 ```
 
 Web 使用 `--profile web`；自定义 profile 使用对应名称。此命令使用 DSH 官方插件安装通道，不要手工替换宿主文件。
@@ -34,7 +40,7 @@ dsh --profile desktop --dump-config
 
 模型可暂不选择。选择模型时使用宿主已经配置的 provider/model，无需向插件提供密钥。来源检索也使用宿主 Web provider；LeetCode 元数据通过公开站点适配器取得。
 
-设置保存通过宿主 ConfigEditor 更新本插件挂载行。角色、时间预算、项目背景与兴趣作为业务偏好保存在数据目录。已保存日期不会因更改偏好被自动覆写。
+设置保存通过宿主 ConfigEditor 更新本插件挂载行。角色、时间预算、项目背景、兴趣及学习需求作为业务偏好保存在数据目录。生成路线需要宿主模型，需求保存和路线生成是独立操作。已保存日期不会因更改偏好或路线被自动覆写。
 
 Web 的数据目录在服务机器上，浏览器电脑上的路径不能代替服务机器路径。
 

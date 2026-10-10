@@ -1,7 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { gunzipSync } from 'node:zlib';
 import assert from 'node:assert/strict';
-const buffer = gunzipSync(await readFile('dist/dsh-daily-learning-0.1.0.tgz'));
+const manifest = JSON.parse(await readFile('package.json', 'utf8'));
+const tarPath = process.argv[2] || `dist/${manifest.name}-${manifest.version}.tgz`;
+const buffer = gunzipSync(await readFile(tarPath));
 const entries = new Map();
 for (let offset = 0; offset + 512 <= buffer.length;) {
   const header = buffer.subarray(offset, offset + 512);
@@ -18,5 +20,6 @@ for (const [name, contents] of entries) {
   if (name.endsWith('.js')) assert.ok(!contents.includes('D:/Files/Projects') && !contents.includes('D:\\Files\\Projects'), 'Development absolute path in compiled artifact');
 }
 assert.match(entries.get('package/lib/client.js'), /^window\.__ModuleLoader__\.load/);
+assert.equal(JSON.parse(entries.get('package/package.json')).version, manifest.version);
 console.log(`Package audit passed: ${entries.size} entries, no test data or development paths`);
 console.log([...entries.keys()].join('\n'));

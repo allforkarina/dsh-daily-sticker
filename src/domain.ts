@@ -1,6 +1,7 @@
+import { activeRoute, emptyRouteBook, routePosition, type LearningContext, type RouteBook } from './learning.ts';
 export type Category = 'algorithm' | 'llm' | 'agent' | 'explore';
-export type Source = { id: string; url: string; title: string; fetchedAt: string; publishedAt?: string; text?: string; verified: boolean; difficulty?: string; slug?: string };
-export type Task = { id: string; category: Category; title: string; summary: string; steps: string[]; acceptance: string; minutes: string; done: boolean; sources: Source[]; preparation: string; note?: string; topicIndex?: number };
+export type Source = { id: string; url: string; title: string; fetchedAt: string; publishedAt?: string; text?: string; verified: boolean; difficulty?: string; slug?: string; topicMatched?: boolean };
+export type Task = { id: string; category: Category; title: string; summary: string; steps: string[]; acceptance: string; minutes: string; done: boolean; sources: Source[]; preparation: string; note?: string; topicIndex?: number; learning?: LearningContext };
 export type Plan = { date: string; createdAt: string; timezone: string; project: string; llmStart?: number; tasks: Task[]; mode: string; notices: string[] };
 export type Preferences = ReturnType<typeof defaults>;
 export const categories: Category[] = ['algorithm', 'llm', 'agent', 'explore'];
@@ -11,6 +12,7 @@ export function defaults() {
   return {
     timezone: 'Asia/Shanghai', algorithmMinutes: 30, llmMinutes: 30, agentMinMinutes: 60, agentMaxMinutes: 120, exploreMinutes: 25,
     leetcodeSite: 'cn', llmStart: 0, project: '', interests: 'AI 工具、产品更新、工作流、论文、模型能力、训练与推理进展',
+    learningRequests: { algorithm: '', llm: '', agent: '', explore: '' },
     roles: { algorithm: '你是耐心的算法导师，先引导分析，再给提示，不直接给完整答案。', llm: '你是苏格拉底式 LLM 导师，以提问和小实验引导我理解原理。', agent: '你是务实的 Agent 工程师，先概括目标，再拆解最小实现和验证方式。', explore: '你是客观的 AI 播报员，区分事实、推测与未知，帮助我判断值得尝试的内容。' }
   };
 }
@@ -35,7 +37,9 @@ export function exactKeys(input: any, keys: string[]) {
 export function validatePreferences(input: any): Preferences {
   const base = defaults();
   exactKeys(input, Object.keys(base));
-  const p = { ...base, ...input, roles: { ...base.roles, ...input.roles } };
+  if (input.learningRequests !== undefined) exactKeys(input.learningRequests, categories);
+  if (input.roles !== undefined) exactKeys(input.roles, categories);
+  const p = { ...base, ...input, roles: { ...base.roles, ...input.roles }, learningRequests: { ...base.learningRequests, ...input.learningRequests } };
   for (const key of ['algorithmMinutes', 'llmMinutes', 'agentMinMinutes', 'agentMaxMinutes', 'exploreMinutes']) if (!Number.isInteger(p[key]) || p[key] < 5 || p[key] > 240) throw new Error('每类预算须为 5–240 分钟');
   if (p.agentMinMinutes > p.agentMaxMinutes) throw new Error('工程时长范围不正确');
   text(p.timezone, 100, '时区');
@@ -46,6 +50,7 @@ export function validatePreferences(input: any): Preferences {
   p.interests = text(p.interests, 1000, '兴趣', true);
   exactKeys(p.roles, categories);
   for (const c of categories) p.roles[c] = text(p.roles[c], 4000, '角色文本', true);
+  for (const c of categories) p.learningRequests[c] = text(p.learningRequests[c], 12000, '学习需求', true);
   return p;
 }
 export function safeUrl(input: unknown): string {
@@ -64,13 +69,13 @@ function topicFor(category: Category, prefs: Preferences, history: Plan[]) {
   return Math.min(next, length - 1);
 }
 function sourceMetadata(source: Source): Source { const { text: _body, ...metadata } = source; return metadata; }
-export function makeTemplate(date: string, prefs: Preferences, history: Plan[] = [], sources: Source[] = []): Plan {
+export function makeTemplate(date: string, prefs: Preferences, history: Plan[] = [], sources: Source[] = [], routes: RouteBook = emptyRouteBook()): Plan {
   if (!validDate(date)) throw new Error('日期不正确');
   const li = topicFor('llm', prefs, history), ai = topicFor('agent', prefs, history);
   const problem = sources.find(s => s.id.startsWith('problem:') && s.verified && ['Easy', 'Medium'].includes(s.difficulty || ''));
   const articles = sources.filter(s => !s.id.startsWith('problem:') && s.verified).slice(0, 3);
   const task = (category: Category, title: string, summary: string, steps: string[], acceptance: string, minutes: string, materials: Source[] = [], topicIndex?: number): Task => ({ id: `${date}:${category}`, category, title, summary, steps, acceptance, minutes, done: false, sources: materials.map(sourceMetadata), preparation: category === 'algorithm' && !problem ? 'degraded' : category === 'explore' && !articles.length ? 'degraded' : 'template', ...(topicIndex === undefined ? {} : { topicIndex }) });
-  return {
+  const plan: Plan = {
     date, createdAt: new Date().toISOString(), timezone: prefs.timezone, project: prefs.project, llmStart: prefs.llmStart, mode: 'template', notices: [],
     tasks: [
       task('algorithm', problem ? `${problem.title} · ${problem.difficulty}` : '算法练习 · 待选题', problem ? '分析一种可行解法并练习边界用例。' : '题源暂不可用；先选择一道 Easy/Medium 题，按以下方向练习。', ['读题并列出输入、输出与约束。', '独立分析思路，必要时向导师索取分级提示。', '实现解法并用边界用例验证，解释时间与空间复杂度。'], '能说明解法与复杂度，并验证关键边界。', String(prefs.algorithmMinutes), problem ? [problem] : []),
@@ -79,6 +84,26 @@ export function makeTemplate(date: string, prefs: Preferences, history: Plan[] =
       task('explore', articles[0]?.title || 'AI 探索 · 非时效练习', articles.length ? '阅读主资料，区分变化、影响与值得尝试的动作；发布日期未知时不要将其当作近期新闻。' : '没有已验证近期资料；选择一个已知 AI 工具或技巧做小体验，不视作最新资讯。', ['阅读一个原始来源或选择一个已知工具。', '找出一个值得关注的变化或用途。', '形成自己的判断，可选做一次小尝试。'], '能概括主题、事实与自己的判断。', String(prefs.exploreMinutes), articles)
     ]
   };
+  for (const task of plan.tasks) {
+    const route = activeRoute(routes, task.category);
+    if (!route) continue;
+    const position = routePosition(route, history, date), stage = position.stage;
+    task.learning = { routeId: route.id, stageId: stage.id, request: route.request, routeGoal: route.goal, stageTitle: stage.title, stageGoal: stage.goal, review: position.complete };
+    delete task.topicIndex;
+    const title = `${position.complete ? '复习／综合实践 · ' : ''}${stage.title}`;
+    const direction = `${position.complete ? '路线已完成，围绕最后阶段复习或综合实践。' : ''}当前阶段：${stage.title}。阶段目标：${stage.goal}。${stage.focus.length ? `重点：${stage.focus.join('；')}。` : ''}`;
+    if (task.category === 'llm' || task.category === 'agent') {
+      task.title = title;
+      task.summary = `${direction} 模板尚未细化自由文本需求，请围绕阶段目标选择一个符合今日预算的小任务。${task.category === 'agent' && prefs.project ? `工程背景：${prefs.project.slice(0, 800)}` : ''}`;
+      task.steps = [`围绕阶段目标确定一个 ${task.minutes} 分钟内的小目标。`, ...stage.focus.slice(0, 2).map(f => `按当前重点练习：${f}`), '通过一个具体例子或最小实验验证结果。'];
+      task.acceptance = '完成所选小任务，并能说明结果与当前阶段目标的关系。';
+    } else {
+      task.title = `${task.title} · ${title}`;
+      task.summary = `${direction} ${task.summary}`;
+      if (task.category === 'algorithm' && problem?.topicMatched === false) task.summary += ' 已验证题目未匹配当前阶段方向，请勿视为匹配选题。';
+    }
+  }
+  return plan;
 }
 export function validateCandidate(input: any, base: Plan, sources: Source[]): Plan {
   exactKeys(input, ['tasks']);
@@ -102,7 +127,9 @@ export function taskText(task: Task) {
   return `${labels[task.category]} · ${task.title}\n预计 ${task.minutes} 分钟\n\n${task.summary}\n\n建议：\n${task.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n完成标准：${task.acceptance}\n\n资料：\n${task.sources.map(s => `${s.title}\n${s.url}\n发布日期：${s.publishedAt || '未知'}；检索：${s.fetchedAt}`).join('\n\n') || '未提供；请勿编造来源。'}`;
 }
 export function promptFor(task: Task, prefs: Preferences) {
-  return `${prefs.roles[task.category] || defaults().roles[task.category]}\n\n这是我的今日学习任务：\n${taskText(task)}\n\n请先给概要，再根据我的回答逐步引导。已有进度和卡点未提供，不要假定我已掌握。学习在当前工具中完成；不需要向规划插件提交步骤或进度，也不要替我宣告完成。`;
+  const learning = task.learning;
+  const context = learning ? `\n\n学习需求：\n${learning.request}\n\n路线目标：${learning.routeGoal}\n当前阶段：${learning.stageTitle}\n阶段目标：${learning.stageGoal}\n${learning.review ? '路线已完成，今天安排复习或综合实践。' : ''}` : '';
+  return `${prefs.roles[task.category] || defaults().roles[task.category]}${context}\n\n这是我的今日学习任务：\n${taskText(task)}\n\n请先给概要，再根据我的回答逐步引导。已有进度和卡点未提供，不要假定我已掌握。学习在当前工具中完成；不需要向规划插件提交步骤或进度，也不要替我宣告完成。`;
 }
 export function planMarkdown(plan: Plan) {
   return `# ${plan.date} 每日学习计划\n\n${plan.tasks.map(t => `## [${t.done ? 'x' : ' '}] ${labels[t.category]}\n\n${taskText(t)}`).join('\n\n')}\n\n${plan.notices.join('\n')}\n`;

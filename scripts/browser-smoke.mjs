@@ -50,6 +50,9 @@ try {
   const select = page.getByLabel('规划模型');
   const fixtureOption = await select.locator('option').filter({ hasText: 'Memo Fixture' }).getAttribute('value');
   await select.selectOption(fixtureOption);
+  // The profile may already use the fixture; force a real config change for the retry test.
+  const automatic = page.getByLabel('首次打开今日备忘录时自动准备');
+  await automatic.setChecked(!await automatic.isChecked());
   let failConfigurationOnce = true;
   await page.route('**/daily-learning/configure', async route => {
     if (failConfigurationOnce) {

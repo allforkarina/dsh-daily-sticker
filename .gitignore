@@ -5,5 +5,6 @@ dist/
 coverage/
 *.log
 docs/screenshots/failure.png
+docs/screenshots/learning-route-failure.png
 docs/screenshots/host-start.png
 

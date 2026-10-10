@@ -1,8 +1,10 @@
 # 兼容与实测范围
 
-日期：2026-10-09。插件：dsh-daily-learning 0.1.0。
+日期：2026-10-10。插件：dsh-daily-learning 0.2.0（含下方 0.1.0 基础验收记录）。
 
 目标安装：Windows x64，DSH 0.2.0-rc.2（安装包 commit 04f392c9），Node 24.21.0、pnpm 11.7.0。Host 消费的 peer 固定为 Schemastery 3.18.4、dsh-llm 0.2.0-rc.2，Client 复用宿主 React/slot/layout/Connection。
+
+0.2.0 在相同目标宿主的独立 Web profile 中验证长中文需求、完整阶段路线、路线重新生成、预算变更、历史版本及旧任务 Prompt。0.1.0 实装升级到 0.2.0 后旧任务、勾选、角色和项目背景保留，schema 1 原始备份字节一致。路线和每日模型调用使用明确标注的本地夹具，真实外部模型的规划质量由用户更新后验证；不把夹具效果当作真实模型质量结论。详细记录见 acceptance.md。
 
 | 环境或路径 | 实测结果 |
 | --- | --- |

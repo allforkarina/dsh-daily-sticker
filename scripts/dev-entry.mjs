@@ -16,8 +16,11 @@ export function apply(ctx) {
       await writeFile(new URL('../.test-runtime/fixture-calls.json', import.meta.url), JSON.stringify({ calls }));
       const input = options.messages.find(m => m.role === 'user').content.find(c => c.type === 'text').text;
       const context = JSON.parse(input);
-      const tasks = context.template.tasks.map(t => ({ category: t.category, title: t.category === 'llm' ? `模型规划 · ${t.title}` : t.title, summary: t.summary, steps: t.steps, acceptance: t.acceptance, sourceIds: t.sources.map(s => s.id) }));
-      const output = JSON.stringify({ tasks });
+      const output = context.kind === 'route' ? JSON.stringify({
+        goal: `${context.category === 'llm' ? 'Attention：手算与实验' : '分阶段学习'}（本地夹具，不调用外部模型）`,
+        assumptions: ['隔离测试使用固定路线，不代表真实模型规划质量。', '没有提供基础和期限，按当前预算估算。'],
+        stages: [{ title: 'QKV', goal: '解释 Query、Key、Value 并手算一个注意力例子。', estimatedDays: 1, focus: ['手算与代码实验'], searchTerms: ['Attention QKV'] }, { title: '推理优化', goal: '通过最小实验理解 KV Cache。', estimatedDays: 2, focus: ['实验比较'], searchTerms: ['KV Cache'] }]
+      }) : JSON.stringify({ tasks: context.template.tasks.map(t => ({ category: t.category, title: t.category === 'llm' ? `模型规划 · ${t.title}` : t.title, summary: t.summary, steps: t.steps, acceptance: t.acceptance, sourceIds: t.sources.map(s => s.id) })) });
       yield { type: 'block-start', index: 0, blockType: 'text' };
       yield { type: 'text-delta', index: 0, text: output };
       yield { type: 'block-end', index: 0, block: { type: 'text', text: output } };

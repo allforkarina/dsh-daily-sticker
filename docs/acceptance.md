@@ -1,5 +1,19 @@
 # 精简版验收记录
 
+## 0.2.0 自由文本需求与路线
+
+日期：2026-10-10。依据：`superpowers/specs/2026-10-10-custom-learning-planning-design.md`。所有运行均使用隔离 profile 和数据目录；用户生产 DSH 及密钥未修改。
+
+自动测试覆盖旧数据升级、失败备份保护、长中文需求、路线结构、全历史阶段推进、反复勾选去重、旧路线隔离、模型修复/失败/取消、迟到提交冲突、预算、真实来源交叉核验、缓存期限和 HTTP 目录保护。
+
+实际 DSH 面板验证 9471 字符中文需求保存、宿主本地夹具生成完整路线、生成后同页预算修改、自动准备和任务勾选后保存、改方向创建新版本、旧路线查看、失败保留、旧 Prompt、真实第二客户端偏好冲突、清空需求停用且保留历史。850px 窄屏及明暗主题无横向溢出和页面脚本错误；截图见 `screenshots/learning-route-settings.png`、`learning-route-memo.png`、`learning-route-dark.png`。
+
+62 项自动测试通过。多窗口更换目录的保护通过实际相同 revision 的 A/B 目录回归：旧草稿不写入新目录，草稿保留并提示重新打开。客户端前后校验及服务端 expectedDataRoot 校验共同生效，认证仍在正文和目录检查之前。原有 browser-smoke 的设置失败重试、四任务、勾选、复制、恢复及401/403回归通过。最终公开发布验证结果在完成后追加，不将已有 0.1.0 发布证据用于 0.2.0。
+
+最终包包含 19 个必要文件，审计无测试数据、开发目录或凭据。`dist/` 与 `release/` 的 tgz SHA-256 均为 `f2f442e78b32d4cf473ba407d0fce14edf912c6475b480dcf27898e46ceff532`，npm dry-run shasum 为 `81ae0304871d9a0b956787f2a94974c39868ac8e`。安装经过正式插件通道，不手工改宿主。最终代码重启后，需求、两个路线版本、完整今日计划和 revision 全部恢复；自动准备开启时打开已有今日任务仍为零模型调用，页面无错误，暗色链接为 rgb(249,250,251)。脚本：`scripts/verify-route-restart.mjs`、`scripts/verify-restart.mjs`。
+
+## 0.1.0 基础功能历史验收
+
 日期：2026-10-09。依据：daily-planner-spec-v0.4.md。
 
 所有宿主运行使用项目 `.test-runtime` 内的独立 DSH_HOME/profile，不改用户生产 profile、不读取生产密钥。源文件检查缓存不进入发行包。
@@ -26,3 +40,5 @@
 原生 Desktop 窗口和其他平台保留为未验证项，参见 compatibility.md。开发测试的合成资料在截图中明确标注「隔离测试资料」，不是真实资讯。
 
 验收后已停止本任务启动的测试服务。构建、安装与调试辅助脚本不属于发行包的运行依赖。
+
+2026-10-10 的 0.2.0 升级验证使用独立 `daily-learning-upgrade` profile、31304 端口和 `.test-runtime/upgrade-data-020`。先实装现有 `release/dsh-daily-learning-0.1.0.tgz`，启动真实 DSH，认证读取确认 schema 1、revision 7、已完成 LLM 任务及旧角色/工程背景；停止已匹配 profile/端口的宿主进程后，实装 `.test-runtime/learning-routes-preview-20261010-2.tgz` 并重启同一配置。认证读取确认 schema 2、所有旧任务/完成状态/角色/项目不变、四类需求和路线均为空，两次只读均没有触发本地模型夹具调用。升级备份与原始状态字节完全相同，SHA-256 均为 `1e0d5f7b8cccc8372891344be00cdf75c945534615845912533886036cde1ef8`。脚本为 `scripts/verify-upgrade-routes.mjs`，隔离证据为 `.test-runtime/upgrade-verification.json`。验证结束已停止该 profile 的测试进程；31303 的其他验收服务未操作，未使用外部模型或生产凭据。

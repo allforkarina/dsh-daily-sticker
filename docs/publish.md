@@ -10,14 +10,16 @@
 node scripts/build.mjs
 pnpm pack --pack-destination dist
 npm login --registry=https://registry.npmjs.org/
-npm publish ".\dist\dsh-daily-learning-0.1.0.tgz" --access public --registry=https://registry.npmjs.org/
+$releaseTar = (Resolve-Path -LiteralPath '.\dist\dsh-daily-learning-0.2.0.tgz').Path
+npm publish $releaseTar --dry-run --access public --registry=https://registry.npmjs.org/
+npm publish $releaseTar --access public --registry=https://registry.npmjs.org/
 ```
 
 使用当前版本对应的文件名。npm 发布需要账号的双因素认证；设备认证通过 npm 提供的网页完成，不把密码、验证码、恢复码或 token 写到仓库中。发布返回成功后仍可能等待 registry 处理，必须实际查询版本及安装后才能宣称可用。
 
 ```powershell
-npm view dsh-daily-learning@0.1.0 version --registry=https://registry.npmjs.org/
-dsh plugin --profile desktop add "dsh-daily-learning@0.1.0" --registry=https://registry.npmjs.org/
+npm view dsh-daily-learning@0.2.0 version dist.shasum dsh --json --prefer-online --registry=https://registry.npmjs.org/
+dsh plugin --profile desktop add "dsh-daily-learning@0.2.0" --registry=https://registry.npmjs.org/
 ```
 
 发布过的同名版本不能覆盖；后续更新提高 package.json 版本，重建并重新发布。

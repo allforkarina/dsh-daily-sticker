@@ -53,3 +53,27 @@ test('abort interrupts a source provider that ignores cancellation', async () =>
   setTimeout(() => controller.abort(), 10);
   await assert.rejects(pending, /abort/i);
 });
+
+test('daily model receives the active route, keeps local stage identity and respects new budgets', async () => {
+  const prefs = { ...defaults(), llmMinutes: 45 };
+  const route = { id: 'r-1', category: 'llm', createdAt: '2026-10-10T00:00:00Z', request: '学习Attention，先手算', budget: {minMinutes:30,maxMinutes:30}, goal:'理解注意力', assumptions:[], stages:[{ id:'s1', title:'QKV', goal:'解释QKV', estimatedDays:2, focus:['手算'], searchTerms:['Attention QKV'] }] };
+  const routes = Object.fromEntries(['algorithm','llm','agent','explore'].map(c => [c, {activeId: c === 'llm' ? route.id : null,versions:c === 'llm' ? [route] : []}]));
+  let captured;
+  const plan = await planDay('2026-10-10', prefs, [], { routes, sources: async () => [], generate: async (system, input) => {
+    captured = JSON.parse(input);
+    return JSON.stringify({tasks:captured.template.tasks.map(t => ({category:t.category,title:t.title,summary:t.summary,steps:t.steps,acceptance:t.acceptance,sourceIds:[]}))});
+  }});
+  assert.equal(captured.learningRoutes.llm.route.id, route.id);
+  assert.match(plan.tasks[1].title, /QKV/);
+  assert.equal(plan.tasks[1].minutes, '45');
+  assert.equal(plan.tasks[1].learning.routeId, route.id);
+});
+
+test('failed daily model stays on custom stage instead of builtin Prompt route', async () => {
+  const route = { id:'r-1',category:'llm',createdAt:'2026-10-10T00:00:00Z',request:'学Attention',budget:{minMinutes:30,maxMinutes:30},goal:'注意力',assumptions:[],stages:[{id:'s1',title:'QKV',goal:'解释QKV',estimatedDays:2,focus:['手算'],searchTerms:[]}] };
+  const routes = Object.fromEntries(['algorithm','llm','agent','explore'].map(c => [c,{activeId:c === 'llm' ? route.id:null,versions:c === 'llm' ? [route]:[]}]));
+  const plan = await planDay('2026-10-10', defaults(), [], {routes,sources:async()=>[],generate:async()=>{throw new Error('model unavailable');}});
+  assert.match(plan.tasks[1].title,/QKV/);
+  assert.equal(plan.mode,'template');
+  assert.match(plan.notices.join('\n'), /模型/);
+});
